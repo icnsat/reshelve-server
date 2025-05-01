@@ -2,7 +2,8 @@ import express from 'express';
 import getDb from '../database.js';
 import authenticateToken from '../middleware/authenticateToken.js';
 
-const router = express.Router();
+const router = express.Router({ mergeParams: true }); // ✅ Это нужно, чтобы получить bookshelfId
+
 
 // Get all comments for a bookshelf entry
 router.get('/', authenticateToken, async (req, res) => {

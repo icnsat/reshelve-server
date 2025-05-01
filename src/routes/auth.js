@@ -8,6 +8,7 @@ import getDb from '../database.js';
 const router = express.Router();
 const secret_key = process.env.SECRET_KEY;
 
+// Register user (+)
 router.post('/register', async (req, res) => {
     const { email, username, password } = req.body;
     
@@ -59,6 +60,7 @@ router.post('/register', async (req, res) => {
 });
 
 
+// Login (+)
 router.post('/login', async (req, res) => {
     const { email, password } = req.body;
     
@@ -110,6 +112,7 @@ router.post('/login', async (req, res) => {
         res.status(500).json({ error: 'Internal server error' });
     }
 });
+
 
 // Update role (не требуется аутентификация - удалить?)
 router.put('/:id', async (req, res) => {

@@ -2,7 +2,8 @@ import express from 'express';
 import getDb from '../database.js';
 import authenticateToken from '../middleware/authenticateToken.js';
 
-const router = express.Router();
+const router = express.Router({ mergeParams: true }); // ✅ Это нужно, чтобы получить bookshelfId
+
 
 // Get all reading logs for a bookshelf entry
 router.get('/', authenticateToken, async (req, res) => {
@@ -24,16 +25,16 @@ router.get('/', authenticateToken, async (req, res) => {
     }
 });
 
-// Add reading log
+// (+) Add reading log
 router.post('/', authenticateToken, async (req, res) => {
     const db = getDb();
     const { bookshelfId } = req.params;
-    const { start_page, end_page, duration_minutes } = req.body;
+    const { start_page, end_page, duration_minutes, date } = req.body;
 
     try {
         const [log] = await db`
-            INSERT INTO reading_logs (bookshelf_id, start_page, end_page, duration_minutes)
-            VALUES (${bookshelfId}, ${start_page}, ${end_page}, ${duration_minutes})
+            INSERT INTO reading_logs (bookshelf_id, start_page, end_page, duration_minutes, date)
+            VALUES (${bookshelfId}, ${start_page}, ${end_page}, ${duration_minutes}, ${date})
             RETURNING id
         `;
 
@@ -45,15 +46,15 @@ router.post('/', authenticateToken, async (req, res) => {
 });
 
 // Update reading log
-router.patch('/:id', authenticateToken, async (req, res) => {
+router.put('/:id', authenticateToken, async (req, res) => {
     const db = getDb();
     const { id } = req.params;
-    const { start_page, end_page, duration_minutes } = req.body;
+    const { start_page, end_page, duration_minutes, date } = req.body;
 
     try {
         const [updated] = await db`
             UPDATE reading_logs
-            SET start_page = ${start_page}, end_page = ${end_page}, duration_minutes = ${duration_minutes}
+            SET start_page = ${start_page}, end_page = ${end_page}, duration_minutes = ${duration_minutes}, date = ${date}
             WHERE id = ${id}
             RETURNING id
         `;

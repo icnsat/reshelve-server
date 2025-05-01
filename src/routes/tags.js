@@ -4,7 +4,7 @@ import authenticateToken, { requireAdmin } from '../middleware/authenticateToken
 
 const router = express.Router();
 
-// Get all tags (system and user tags)
+// (+) Get all tags (system and user tags)
 router.get('/tags', authenticateToken, async (req, res) => {
     const db = getDb();
     const userId = req.user.id;
@@ -23,7 +23,7 @@ router.get('/tags', authenticateToken, async (req, res) => {
     }
 });
 
-// Create new tag (user or admin)
+// (+) Create new tag (user or admin)
 router.post('/tags', authenticateToken, async (req, res) => {
     const db = getDb();
     const userId = req.user.id;
@@ -50,7 +50,7 @@ router.post('/tags', authenticateToken, async (req, res) => {
     }
 });
 
-// Обновить тег юзер/админ
+// (+) Обновить тег юзер/админ
 router.put('/tags/:tagId', authenticateToken, async (req, res) => {
     const db = getDb();
     const { tagId } = req.params;
@@ -89,7 +89,7 @@ router.put('/tags/:tagId', authenticateToken, async (req, res) => {
     }
 });
 
-// Удалить тег из аккаунта/системы
+// (+) Удалить тег из аккаунта/системы
 router.delete('/tags/:tagId', authenticateToken, async (req, res) => {
     const db = getDb();
     const userId = req.user.id;
@@ -165,7 +165,7 @@ router.get('/bookshelf/:bookshelfId/tags', authenticateToken, async (req, res) =
 //     }
 // });
 
-// Обновление тегов (сначала удаление всех, потом добавление нужных)
+// (+) Обновление тегов (сначала удаление всех, потом добавление нужных)
 router.post('/bookshelf/:bookshelfId/tags', authenticateToken, async (req, res) => {
     const db = getDb();
     const { bookshelfId } = req.params;
@@ -200,8 +200,7 @@ router.post('/bookshelf/:bookshelfId/tags', authenticateToken, async (req, res) 
 });
 
 
-
-// Remove tag from bookshelf entry
+// Remove tag from bookshelf entry (в обновлении тегов)
 router.delete('/bookshelf/:bookshelfId/tags/:tagId', authenticateToken, async (req, res) => {
     const db = getDb();
     const { bookshelfId, tagId } = req.params;

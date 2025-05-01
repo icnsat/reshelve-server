@@ -52,7 +52,7 @@ const router = express.Router();
 //   }
 // });
 
-// Get all books (без серверной фильтрации)
+// (+) Get all books (без серверной фильтрации)
 router.get('/', async (req, res) => {
     const db = getDb();
     
@@ -77,7 +77,7 @@ router.get('/', async (req, res) => {
     }
 });
 
-// Add new book (требуется аутентификация)
+// (/) Add new book (требуется аутентификация)
 router.post('/', authenticateToken, requireAdmin, async (req, res) => {
     const { title, author, genre, cover_url, description, published_year } = req.body;
     const db = getDb();
@@ -143,7 +143,7 @@ router.get('/:id', async (req, res) => {
 });
 
 
-// Get book + check if in bookshelf + fetch user tags
+// (+) Get book + check if in bookshelf + fetch user tags 
 router.get('/:id/details', authenticateToken, async (req, res) => {
     const db = getDb();
     const { id } = req.params;
@@ -223,7 +223,7 @@ router.get('/:id/details', authenticateToken, async (req, res) => {
 
 
 
-// Update book (требуется аутентификация)
+// (/) Update book (требуется аутентификация)
 router.put('/:id', authenticateToken, requireAdmin, async (req, res) => {
     const { id } = req.params;
     const { title, author, genre, cover_url, description, published_year } = req.body;
