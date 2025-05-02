@@ -31,6 +31,13 @@ initDb().then(() => {
 });
 
 
+// Home
+app.get('/', (req, res) => {
+  res.json({message: "Reshelve server is alive!"});
+});
+
+
+
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 // Раздаем статические файлы из папки `src/media`
