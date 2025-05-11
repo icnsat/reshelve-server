@@ -42,7 +42,6 @@
   - `POST`      `/tags` - Добавить новый тег (системный или пользовательский).
   - `PUT`       `/tags/:tagId` - Обновить тег.
   - `DELETE`    `/tags/:tagId` - Удалить тег.
-
   - `GET`       `/bookshelf/:bookshelfId/tags` - Получить все теги для книги на полке.
   - `POST`      `/bookshelf/:bookshelfId/tags` - Добавление тегов для книги на полке.
   - `DELETE`    `/bookshelf/:bookshelfId/tags/:tagId` - Удаление тега для книги на полке.
@@ -62,7 +61,7 @@ curl -X POST http://localhost:5000/auth/login \
 # Ответ
 {"token":"eyJhbGciOiJI.F0IjoiOjE3NDYwMjYzMzF9.vweNcisXCb0YktvbWMs"}
 
-# Добавление книгу на полку
+# Добавление книги на полку
 curl -X POST http://localhost:5000/bookshelf \
 -H "Content-Type: application/json" \
 -H "Authorization: Bearer eyJhbGciOiJI.F0IjoiOjE3NDYwMjYzMzF9.vweNcisXCb0YktvbWMs" \
