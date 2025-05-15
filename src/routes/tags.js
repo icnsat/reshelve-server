@@ -5,23 +5,55 @@ import authenticateToken, { requireAdmin } from '../middleware/authenticateToken
 const router = express.Router();
 
 // (+) Get all tags (system and user tags)
+// router.get('/tags', authenticateToken, async (req, res) => {
+//     const db = getDb();
+//     const userId = req.user.id;
+
+//     try {
+//         const tags = await db`
+//             SELECT id, name
+//             FROM tags
+//             WHERE user_id IS NULL OR user_id = ${userId}
+//             ORDER BY name ASC
+//         `;
+//         res.json(tags);
+//     } catch (err) {
+//         console.error('Error fetching tags:', err);
+//         res.status(500).json({ error: 'Failed to fetch tags' });
+//     }
+// });
+
 router.get('/tags', authenticateToken, async (req, res) => {
     const db = getDb();
     const userId = req.user.id;
 
     try {
-        const tags = await db`
-            SELECT id, name
+        // Получаем все доступные теги
+        const allTags = await db`
+            SELECT id, name, user_id
             FROM tags
             WHERE user_id IS NULL OR user_id = ${userId}
-            ORDER BY name ASC
+            ORDER BY id ASC
         `;
-        res.json(tags);
+
+        // Разделяем на системные и пользовательские
+        const systemTags = allTags.filter(tag => tag.user_id === null);
+        const userTags = allTags.filter(tag => tag.user_id === userId);
+
+        // Возвращаем все три массива
+        res.json({
+            allTags,  // Все теги (системные + пользовательские)
+            systemTags,  // Только системные
+            userTags  // Только текущего пользователя
+        });
+
     } catch (err) {
         console.error('Error fetching tags:', err);
         res.status(500).json({ error: 'Failed to fetch tags' });
     }
 });
+
+
 
 // (+) Create new tag (user or admin)
 router.post('/tags', authenticateToken, async (req, res) => {
