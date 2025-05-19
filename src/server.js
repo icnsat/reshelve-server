@@ -1,4 +1,3 @@
-// import app from './app.js';
 import cors from 'cors';
 import express from 'express';
 import dotenv from 'dotenv';
@@ -15,13 +14,16 @@ import commentsRouter from './routes/comments.js';
 import logsRouter from './routes/logs.js';
 import tagsRouter from './routes/tags.js';
 
-// Загружаем переменные из .env файла
+import swaggerRouter from './swaggerUI.js';
+
 dotenv.config();
 
 const app = express();
 
 app.use(cors());
 app.use(express.json());
+
+app.use(swaggerRouter);
 
 // Initialize database
 initDb().then(() => {
@@ -40,18 +42,13 @@ app.get('/', (req, res) => {
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
-// Раздаем статические файлы из папки `src/media`
 app.use('/media', express.static(path.join(__dirname, 'media')));
 
-
-// Connect routes
 app.use('/auth', authRoutes);
 app.use('/books', booksRoutes);
 app.use('/bookshelf', bookshelfRouter);
 app.use('/bookshelf/:bookshelfId/comments', commentsRouter);
 app.use('/bookshelf/:bookshelfId/logs', logsRouter);
-// app.use('/bookshelf/:bookshelfId/tags', tagsRouter);
-// app.use('/bookshelf/tags', tagsRouter);
 app.use('/', tagsRouter);
 
 

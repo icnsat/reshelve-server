@@ -1,19 +1,7 @@
 import postgres from 'postgres';
 import dotenv from 'dotenv';
 
-dotenv.config(); // Загружает .env
-
-// const connectionString = (
-//   process.env.LOCAL !== 'false'
-//   ? process.env.LOCAL_DATABASE_URL
-//   : process.env.REMOTE_DATABASE_URL
-// );
-
-// let sql;
-// sql = postgres(connectionString, { 
-//   ssl: process.env.LOCAL === 'false'
-// });
-
+dotenv.config();
 
 const isLocal = process.env.LOCAL === 'true';
 
@@ -115,7 +103,7 @@ export const initDb = async () => {
       );
     `;
 
-    // Добавляем стандартные роли, если их нет
+    // Добавляем стандартные теги, если их нет
     await db`
       INSERT INTO tags (id, name)
       VALUES 

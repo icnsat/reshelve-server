@@ -4,8 +4,56 @@ import authenticateToken from '../middleware/authenticateToken.js';
 
 const router = express.Router({ mergeParams: true }); // ✅ Это нужно, чтобы получить bookshelfId
 
+/**
+ * @swagger
+ * tags:
+ *   name: Logs
+ *   description: Управление записями чтения к книгам на книжной полке пользователя
+ */
 
-// Get all reading logs for a bookshelf entry
+
+/**
+ * @swagger
+ * /bookshelf/{bookshelfId}/logs:
+ *   get:
+ *     summary: Получить все записи чтения для книги на полке
+ *     security:
+ *       - bearerAuth: []
+ *     tags:
+ *       - Logs
+ *     parameters:
+ *       - in: path
+ *         name: bookshelfId
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: ID записи книги на полке
+ *     responses:
+ *       200:
+ *         description: Список записей чтения
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 type: object
+ *                 properties:
+ *                   id:
+ *                     type: integer
+ *                   start_page:
+ *                     type: integer
+ *                   end_page:
+ *                     type: integer
+ *                   duration_minutes:
+ *                     type: integer
+ *                   date:
+ *                     type: string
+ *                     format: date
+ *       401:
+ *         description: Ошибка аутентификации
+ *       500:
+ *         description: Ошибка сервера при получении записей чтения
+ */
 router.get('/', authenticateToken, async (req, res) => {
     const db = getDb();
     const { bookshelfId } = req.params;
@@ -25,7 +73,65 @@ router.get('/', authenticateToken, async (req, res) => {
     }
 });
 
-// (+) Add reading log
+
+/**
+ * @swagger
+ * /bookshelf/{bookshelfId}/logs:
+ *   post:
+ *     summary: Добавить запись чтения для книги на полке
+ *     security:
+ *       - bearerAuth: []
+ *     tags:
+ *       - Logs
+ *     parameters:
+ *       - in: path
+ *         name: bookshelfId
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: ID записи книги на полке
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - start_page
+ *               - end_page
+ *               - duration_minutes
+ *               - date
+ *             properties:
+ *               start_page:
+ *                 type: integer
+ *                 description: Страница начала чтения
+ *               end_page:
+ *                 type: integer
+ *                 description: Страница окончания чтения
+ *               duration_minutes:
+ *                 type: integer
+ *                 description: Продолжительность чтения в минутах
+ *               date:
+ *                 type: string
+ *                 format: date
+ *                 description: Дата чтения
+ *     responses:
+ *       201:
+ *         description: Запись чтения успешно добавлена
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 id:
+ *                   type: integer
+ *                 message:
+ *                   type: string
+ *       401:
+ *         description: Ошибка аутентификации
+ *       500:
+ *         description: Ошибка сервера при добавлении записи чтения
+ */
 router.post('/', authenticateToken, async (req, res) => {
     const db = getDb();
     const { bookshelfId } = req.params;
@@ -45,7 +151,68 @@ router.post('/', authenticateToken, async (req, res) => {
     }
 });
 
-// Update reading log
+/**
+ * @swagger
+ * /bookshelf/{bookshelfId}/logs/{id}:
+ *   put:
+ *     summary: Обновить запись чтения по ID
+ *     security:
+ *       - bearerAuth: []
+ *     tags:
+ *       - Logs
+ *     parameters:
+ *       - in: path
+ *         name: bookshelfId
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: ID записи книги на полке
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: ID записи чтения
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - start_page
+ *               - end_page
+ *               - duration_minutes
+ *               - date
+ *             properties:
+ *               start_page:
+ *                 type: integer
+ *               end_page:
+ *                 type: integer
+ *               duration_minutes:
+ *                 type: integer
+ *               date:
+ *                 type: string
+ *                 format: date
+ *     responses:
+ *       200:
+ *         description: Запись чтения успешно обновлена
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 id:
+ *                   type: integer
+ *                 message:
+ *                   type: string
+ *       401:
+ *         description: Ошибка аутентификации
+ *       404:
+ *         description: Запись чтения не найдена
+ *       500:
+ *         description: Ошибка сервера при обновлении записи чтения
+ */
 router.put('/:id', authenticateToken, async (req, res) => {
     const db = getDb();
     const { id } = req.params;
@@ -70,7 +237,47 @@ router.put('/:id', authenticateToken, async (req, res) => {
     }
 });
 
-// Delete reading log
+/**
+ * @swagger
+ * /bookshelf/{bookshelfId}/logs/{id}:
+ *   delete:
+ *     summary: Удалить запись чтения по ID
+ *     security:
+ *       - bearerAuth: []
+ *     tags:
+ *       - Logs
+ *     parameters:
+ *       - in: path
+ *         name: bookshelfId
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: ID записи книги на полке
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: ID записи чтения
+ *     responses:
+ *       200:
+ *         description: Запись чтения успешно удалена
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 id:
+ *                   type: integer
+ *                 message:
+ *                   type: string
+ *       401:
+ *         description: Ошибка аутентификации
+ *       404:
+ *         description: Запись чтения не найдена
+ *       500:
+ *         description: Ошибка сервера при удалении записи чтения
+ */
 router.delete('/:id', authenticateToken, async (req, res) => {
     const db = getDb();
     const { id } = req.params;

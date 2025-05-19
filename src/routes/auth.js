@@ -8,7 +8,69 @@ import getDb from '../database.js';
 const router = express.Router();
 const secret_key = process.env.SECRET_KEY;
 
-// Register user (+)
+
+/**
+ * @swagger
+ * tags:
+ *   name: Auth
+ *   description: Аутентификация и регистрация пользователей
+ */
+
+/**
+ * @swagger
+ * /auth/register:
+ *   post:
+ *     summary: Регистрация нового пользователя
+ *     tags: [Auth]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - email
+ *               - username
+ *               - password
+ *             properties:
+ *               email:
+ *                 type: string
+ *                 format: email
+ *               username:
+ *                 type: string
+ *               password:
+ *                 type: string
+ *                 format: password
+ *     responses:
+ *       201:
+ *         description: Пользователь успешно зарегистрирован, возвращается JWT и данные
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 id:
+ *                   type: integer
+ *                 username:
+ *                   type: string
+ *                 email:
+ *                   type: string
+ *                 role:
+ *                   type: string
+ *                 token:
+ *                   type: string
+ *       400:
+ *         description: Ошибка валидации (Email или Username уже существуют)
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *       500:
+ *         description: Внутренняя ошибка сервера
+ */
 router.post('/register', async (req, res) => {
     const { email, username, password } = req.body;
     
@@ -60,7 +122,58 @@ router.post('/register', async (req, res) => {
 });
 
 
-// Login (+)
+/**
+ * @swagger
+ * /auth/login:
+ *   post:
+ *     summary: Вход пользователя по email и паролю
+ *     tags: [Auth]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - email
+ *               - password
+ *             properties:
+ *               email:
+ *                 type: string
+ *                 format: email
+ *               password:
+ *                 type: string
+ *                 format: password
+ *     responses:
+ *       200:
+ *         description: Успешный вход, возвращает JWT и данные пользователя
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 id:
+ *                   type: integer
+ *                 username:
+ *                   type: string
+ *                 email:
+ *                   type: string
+ *                 role:
+ *                   type: string
+ *                 token:
+ *                   type: string
+ *       401:
+ *         description: Неверный email или пароль
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *       500:
+ *         description: Внутренняя ошибка сервера
+ */
 router.post('/login', async (req, res) => {
     const { email, password } = req.body;
     
@@ -110,36 +223,6 @@ router.post('/login', async (req, res) => {
     } catch (err) {
         console.error('Login error:', err);
         res.status(500).json({ error: 'Internal server error' });
-    }
-});
-
-
-// Update role (не требуется аутентификация - удалить?)
-router.put('/:id', async (req, res) => {
-    const { id } = req.params;
-    const { role_id } = req.body;
-    const db = getDb();
-    
-    try {
-        const [user] = await db`
-            UPDATE users 
-            SET 
-                role_id = ${role_id}
-            WHERE id = ${id}
-            RETURNING id, role_id
-        `;
-        
-        if (!user) {
-            return res.status(404).json({ error: 'user not found' });
-        }
-        
-        res.json({ 
-            id: user.id,
-            message: 'user updated successfully' 
-        });
-    } catch (err) {
-        console.error('Error updating user:', err);
-        res.status(500).json({ error: 'Failed to update user' });
     }
 });
 

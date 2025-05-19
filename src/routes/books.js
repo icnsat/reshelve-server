@@ -4,55 +4,49 @@ import authenticateToken, { requireAdmin } from '../middleware/authenticateToken
 
 const router = express.Router();
 
-// Get all books with optional filters
-// router.get('/', async (req, res) => {
-//   const { author, genre } = req.query;
-//   const db = getDb();
-  
-//   try {
-//     let books;
-    
-//     if (author || genre) {
-//       // Фильтрация по автору и/или жанру
-//       books = await db`
-//         SELECT 
-//           id,
-//           title,
-//           author,
-//           genre,
-//           cover_url as "coverUrl",
-//           description,
-//           published_year as "publishedYear"
-//         FROM books
-//         WHERE 
-//           ${author ? db`author = ${author}` : db`true`} AND
-//           ${genre ? db`genre = ${genre}` : db`true`}
-//         ORDER BY title ASC
-//       `;
-//     } else {
-//       // Все книги
-//       books = await db`
-//         SELECT 
-//           id,
-//           title,
-//           author,
-//           genre,
-//           cover_url as "coverUrl",
-//           description,
-//           published_year as "publishedYear"
-//         FROM books
-//         ORDER BY title ASC
-//       `;
-//     }
-    
-//     res.json(books);
-//   } catch (err) {
-//     console.error('Error fetching books:', err);
-//     res.status(500).json({ error: 'Failed to fetch books' });
-//   }
-// });
 
-// (+) Get all books (без серверной фильтрации)
+/**
+ * @swagger
+ * tags:
+ *   name: Books
+ *   description: Работа с книгами
+ */
+
+
+
+/**
+ * @swagger
+ * /books:
+ *   get:
+ *     summary: Получить список всех книг
+ *     tags: [Books]
+ *     responses:
+ *       200:
+ *         description: Список книг
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 type: object
+ *                 properties:
+ *                   id:
+ *                     type: integer
+ *                   title:
+ *                     type: string
+ *                   author:
+ *                     type: string
+ *                   genre:
+ *                     type: string
+ *                   cover_url:
+ *                     type: string
+ *                   description:
+ *                     type: string
+ *                   published_year:
+ *                     type: integer
+ *       500:
+ *         description: Ошибка сервера при получении списка книг
+ */
 router.get('/', async (req, res) => {
     const db = getDb();
     
@@ -77,7 +71,63 @@ router.get('/', async (req, res) => {
     }
 });
 
-// (/) Add new book (требуется аутентификация)
+
+/**
+ * @swagger
+ * /books:
+ *   post:
+ *     summary: Добавить новую книгу (только для админа)
+ *     tags: [Books]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - title
+ *               - author
+ *             properties:
+ *               title:
+ *                 type: string
+ *               author:
+ *                 type: string
+ *               genre:
+ *                 type: string
+ *               cover_url:
+ *                 type: string
+ *                 format: uri
+ *               description:
+ *                 type: string
+ *               published_year:
+ *                 type: integer
+ *     responses:
+ *       201:
+ *         description: Книга успешно добавлена
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 id:
+ *                   type: integer
+ *                 message:
+ *                   type: string
+ *       400:
+ *         description: Книга с таким названием уже существует
+ *         content:
+ *           application/json:
+ *             schema:
+ *               properties:
+ *                 error:
+ *                   type: string
+ *       403:
+ *         description: Доступ запрещён, требуется роль администратора
+ *       500:
+ *         description: Ошибка сервера при добавлении книги
+ */
 router.post('/', authenticateToken, requireAdmin, async (req, res) => {
     const { title, author, genre, cover_url, description, published_year } = req.body;
     const db = getDb();
@@ -116,7 +166,45 @@ router.post('/', authenticateToken, requireAdmin, async (req, res) => {
     }
 });
 
-// Get one book
+
+/**
+ * @swagger
+ * /books/{id}:
+ *   get:
+ *     summary: Получить информацию о книге по ID
+ *     tags: [Books]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         schema:
+ *           type: integer
+ *         required: true
+ *         description: ID книги
+ *     responses:
+ *       200:
+ *         description: Информация о книге
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 id:
+ *                   type: integer
+ *                 title:
+ *                   type: string
+ *                 author:
+ *                   type: string
+ *                 genre:
+ *                   type: string
+ *                 cover_url:
+ *                   type: string
+ *                 description:
+ *                   type: string
+ *                 published_year:
+ *                   type: integer
+ *       500:
+ *         description: Ошибка сервера при получении книги
+ */
 router.get('/:id', async (req, res) => {
     const db = getDb();
     const { id } = req.params;
@@ -143,7 +231,92 @@ router.get('/:id', async (req, res) => {
 });
 
 
-// (+) Get book + check if in bookshelf + fetch user tags 
+/**
+ * @swagger
+ * /books/{id}/details:
+ *   get:
+ *     summary: Получить детальную информацию о книге на полке пользователя с тегами
+ *     tags: [Books]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         schema:
+ *           type: integer
+ *         required: true
+ *         description: ID книги
+ *     responses:
+ *       200:
+ *         description: Детальная информация о книге и связанной информации
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 book:
+ *                   type: object
+ *                   properties:
+ *                     id:
+ *                       type: integer
+ *                     title:
+ *                       type: string
+ *                     author:
+ *                       type: string
+ *                     genre:
+ *                       type: string
+ *                     cover_url:
+ *                       type: string
+ *                     description:
+ *                       type: string
+ *                     published_year:
+ *                       type: integer
+ *                 isInBookshelf:
+ *                   type: boolean
+ *                 bookshelfId:
+ *                   type: integer
+ *                   nullable: true
+ *                 bookshelfTags:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       id:
+ *                         type: integer
+ *                       name:
+ *                         type: string
+ *                 userTags:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       id:
+ *                         type: integer
+ *                       name:
+ *                         type: string
+ *                 systemTags:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       id:
+ *                         type: integer
+ *                       name:
+ *                         type: string
+ *                 allTags:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       id:
+ *                         type: integer
+ *                       name:
+ *                         type: string
+ *       404:
+ *         description: Книга не найдена
+ *       500:
+ *         description: Ошибка сервера
+ */
 router.get('/:id/details', authenticateToken, async (req, res) => {
     const db = getDb();
     const { id } = req.params;
@@ -166,11 +339,6 @@ router.get('/:id/details', authenticateToken, async (req, res) => {
         if (!book) {
             return res.status(404).json({ error: 'Book not found' });
         }
-
-        // const [existing] = await db`
-        //     SELECT 1 FROM bookshelf
-        //     WHERE user_id = ${userId} AND book_id = ${id}
-        // `;
 
         const [bookshelfEntry] = await db`
             SELECT id FROM bookshelf
@@ -222,8 +390,65 @@ router.get('/:id/details', authenticateToken, async (req, res) => {
 });
 
 
-
-// (/) Update book (требуется аутентификация)
+/**
+ * @swagger
+ * /books/{id}:
+ *   put:
+ *     summary: Обновить информацию о книге (только для админа)
+ *     tags: [Books]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         schema:
+ *           type: integer
+ *         required: true
+ *         description: ID книги
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - title
+ *               - author
+ *             properties:
+ *               title:
+ *                 type: string
+ *               author:
+ *                 type: string
+ *               genre:
+ *                 type: string
+ *               cover_url:
+ *                 type: string
+ *                 format: uri
+ *               description:
+ *                 type: string
+ *               published_year:
+ *                 type: integer
+ *     responses:
+ *       200:
+ *         description: Книга успешно обновлена
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 id:
+ *                   type: integer
+ *                 message:
+ *                   type: string
+ *       400:
+ *         description: Книга с таким названием уже существует
+ *       403:
+ *         description: Доступ запрещён, требуется роль администратора
+ *       404:
+ *         description: Книга не найдена
+ *       500:
+ *         description: Ошибка сервера при обновлении книги
+ */
 router.put('/:id', authenticateToken, requireAdmin, async (req, res) => {
     const { id } = req.params;
     const { title, author, genre, cover_url, description, published_year } = req.body;
@@ -260,7 +485,40 @@ router.put('/:id', authenticateToken, requireAdmin, async (req, res) => {
     }
 });
 
-// Delete book (требуется аутентификация)
+/**
+ * @swagger
+ * /books/{id}:
+ *   delete:
+ *     summary: Удалить книгу (только для админа)
+ *     tags: [Books]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         schema:
+ *           type: integer
+ *         required: true
+ *         description: ID книги
+ *     responses:
+ *       200:
+ *         description: Книга успешно удалена
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 id:
+ *                   type: integer
+ *                 message:
+ *                   type: string
+ *       403:
+ *         description: Доступ запрещён, требуется роль администратора
+ *       404:
+ *         description: Книга не найдена
+ *       500:
+ *         description: Ошибка сервера при удалении книги
+ */
 router.delete('/:id', authenticateToken, requireAdmin, async (req, res) => {
     const { id } = req.params;
     const db = getDb();

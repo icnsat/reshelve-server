@@ -4,7 +4,54 @@ import authenticateToken from '../middleware/authenticateToken.js';
 
 const router = express.Router();
 
-// (+) Get all books on user's bookshelf
+/**
+ * @swagger
+ * tags:
+ *   name: Bookshelf
+ *   description: Управление книжными полками пользователей
+ */
+
+
+/**
+ * @swagger
+ * /bookshelf:
+ *   get:
+ *     summary: Получить список книг на полке пользователя
+ *     security:
+ *       - bearerAuth: []
+ *     tags:
+ *       - Bookshelf
+ *     responses:
+ *       200:
+ *         description: Список книг на полке с базовой информацией и тегами
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 type: object
+ *                 properties:
+ *                   bookshelf_id:
+ *                     type: integer
+ *                     description: ID записи на полке
+ *                   book_id:
+ *                     type: integer
+ *                   title:
+ *                     type: string
+ *                   author:
+ *                     type: string
+ *                   cover_url:
+ *                     type: string
+ *                   tag_ids:
+ *                     type: array
+ *                     items:
+ *                       type: integer
+ *                     description: Список ID тегов
+ *       401:
+ *         description: Unauthorized - ошибка аутентификации
+ *       500:
+ *         description: Внутренняя ошибка сервера
+ */
 router.get('/', authenticateToken, async (req, res) => {
     const db = getDb();
     const user_id = req.user.id;
@@ -33,84 +80,120 @@ router.get('/', authenticateToken, async (req, res) => {
     }
 });
 
-// // Получить полную информацию о книге на полке
-// router.get('/:id', authenticateToken, async (req, res) => {
-//     const db = getDb();
-//     const { id } = req.params;
-//     const userId = req.user.id;
-
-//     try {
-//         // Получаем основную информацию о книге на полке
-//         const [bookshelfItem] = await db`
-//             SELECT 
-//                 b.id AS "bookshelfId",
-//                 k.id AS "bookId",
-//                 k.title,
-//                 k.author,
-//                 k.genre,
-//                 k.cover_url AS "coverUrl",
-//                 k.description,
-//                 k.published_year AS "publishedYear"
-//             FROM bookshelf b
-//             JOIN books k ON b.book_id = k.id
-//             WHERE b.id = ${id} AND b.user_id = ${userId}
-//         `;
-
-//         if (!bookshelfItem) {
-//             return res.status(404).json({ error: 'Bookshelf item not found' });
-//         }
-
-//         // Получаем комментарии
-//         const comments = await db`
-//             SELECT 
-//                 id,
-//                 content,
-//                 created_at AS "createdAt",
-//                 updated_at AS "updatedAt"
-//             FROM comments
-//             WHERE bookshelf_id = ${id}
-//             ORDER BY created_at ASC
-//         `;
-
-//         // Получаем логи чтения
-//         const readingLogs = await db`
-//             SELECT 
-//                 id,
-//                 start_page AS "startPage",
-//                 end_page AS "endPage",
-//                 duration_minutes AS "durationMinutes",
-//                 date
-//             FROM reading_logs
-//             WHERE bookshelf_id = ${id}
-//             ORDER BY date ASC
-//         `;
-
-//         // Получаем теги
-//         const tags = await db`
-//             SELECT 
-//                 t.id,
-//                 t.name
-//             FROM bookshelf_tags bt
-//             JOIN tags t ON bt.tag_id = t.id
-//             WHERE bt.bookshelf_id = ${id}
-//         `;
-
-//         // Собираем всё в один ответ
-//         res.json({
-//             ...bookshelfItem,
-//             comments,
-//             readingLogs,
-//             tags
-//         });
-
-//     } catch (err) {
-//         console.error('Error fetching bookshelf item details:', err);
-//         res.status(500).json({ error: 'Failed to fetch bookshelf item details' });
-//     }
-// });
-
-
-// (+) Получить полную информацию о книге на полке одним запросом
+/**
+ * @swagger
+ * /bookshelf/{id}:
+ *   get:
+ *     summary: Получить детальную информацию о книге на полке по ID
+ *     security:
+ *       - bearerAuth: []
+ *     tags:
+ *       - Bookshelf
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: ID записи на полке
+ *     responses:
+ *       200:
+ *         description: Детальная информация о книге с комментариями, тегами и логами
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 bookshelf_id:
+ *                   type: integer
+ *                 book_id:
+ *                   type: integer
+ *                 title:
+ *                   type: string
+ *                 author:
+ *                   type: string
+ *                 genre:
+ *                   type: string
+ *                 cover_url:
+ *                   type: string
+ *                 description:
+ *                   type: string
+ *                 published_year:
+ *                   type: integer
+ *                 comments:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       id:
+ *                         type: integer
+ *                       content:
+ *                         type: string
+ *                       created_at:
+ *                         type: string
+ *                         format: date-time
+ *                       updated_at:
+ *                         type: string
+ *                         format: date-time
+ *                 readingLogs:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       id:
+ *                         type: integer
+ *                       start_page:
+ *                         type: integer
+ *                       end_page:
+ *                         type: integer
+ *                       duration_minutes:
+ *                         type: integer
+ *                       date:
+ *                         type: string
+ *                         format: date
+ *                 bookshelfTags:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       id:
+ *                         type: integer
+ *                       name:
+ *                         type: string
+ *                 userTags:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       id:
+ *                         type: integer
+ *                       name:
+ *                         type: string
+ *                 systemTags:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       id:
+ *                         type: integer
+ *                       name:
+ *                         type: string
+ *                 allTags:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       id:
+ *                         type: integer
+ *                       name:
+ *                         type: string
+ *       401:
+ *         description: Unauthorized - ошибка аутентификации
+ *       404:
+ *         description: Запись на полке не найдена
+ *       500:
+ *         description: Внутренняя ошибка сервера
+ */
 router.get('/:id', authenticateToken, async (req, res) => {
     const db = getDb();
     const { id } = req.params;
@@ -191,7 +274,6 @@ router.get('/:id', authenticateToken, async (req, res) => {
             return res.status(404).json({ error: 'Bookshelf item not found' });
         }
 
-        // Финальная сборка данных
         res.json({
             ...result.bookshelf_item,
             comments: result.comments,
@@ -209,7 +291,43 @@ router.get('/:id', authenticateToken, async (req, res) => {
 });
 
 
-// (+) Add book to bookshelf
+/**
+ * @swagger
+ * /bookshelf:
+ *   post:
+ *     summary: Добавить книгу на полку пользователя
+ *     security:
+ *       - bearerAuth: []
+ *     tags:
+ *       - Bookshelf
+ *     requestBody:
+ *       description: ID книги для добавления на полку
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               book_id:
+ *                 type: integer
+ *                 description: ID книги
+ *     responses:
+ *       201:
+ *         description: Книга успешно добавлена на полку
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 id:
+ *                   type: integer
+ *                 message:
+ *                   type: string
+ *       401:
+ *         description: Unauthorized - ошибка аутентификации
+ *       500:
+ *         description: Внутренняя ошибка сервера
+ */
 router.post('/', authenticateToken, async (req, res) => {
     const db = getDb();
     const userId = req.user.id;
@@ -229,7 +347,41 @@ router.post('/', authenticateToken, async (req, res) => {
     }
 });
 
-// (+) Remove book from bookshelf
+/**
+ * @swagger
+ * /bookshelf/{id}:
+ *   delete:
+ *     summary: Удалить книгу с полки пользователя
+ *     security:
+ *       - bearerAuth: []
+ *     tags:
+ *       - Bookshelf
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: ID записи книги на полке для удаления
+ *     responses:
+ *       200:
+ *         description: Книга успешно удалена с полки
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 id:
+ *                   type: integer
+ *                 message:
+ *                   type: string
+ *       401:
+ *         description: Unauthorized - ошибка аутентификации
+ *       404:
+ *         description: Запись книги на полке не найдена
+ *       500:
+ *         description: Внутренняя ошибка сервера
+ */
 router.delete('/:id', authenticateToken, async (req, res) => {
     const db = getDb();
     const { id } = req.params;
